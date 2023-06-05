@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Generates a self-signed TLS certificate for development. Files are written to
+# the current directory.
+#
+# Usage: gencert [hostname]
+#
+# If no hostname is given, the certificate will be for localhost.
+
+CN=${1-localhost}
+
+cat <<EOF >openssl.conf
+[ req ]
+prompt = no
+default_bits = 2048
+default_md = sha256
+default_keyfile = ${CN}_key.pem
+distinguished_name = req_distinguished_name
+x509_extensions = v3_ca
+
+[ req_distinguished_name ]
+CN=$CN
+
+[ v3_ca ]
+subjectAltName = DNS:$CN
+EOF
+
+openssl req -config openssl.conf -new -x509 -nodes -days 365 -out $CN.pem
+CODE=$?
+rm openssl.conf
+exit $CODE

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+## Generate a random string of printable characters.
+
+LEN=${1-16}
+strings /dev/urandom | grep -o '[[:print:]]' | head -n $LEN | tr -d '\\"\n'
