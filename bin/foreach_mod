@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Run a command for every Go module found beneath the current directory.
+
+MODULES=$( (find . -name go.mod -exec dirname {} \;) 2>/dev/null)
+
+for module in $MODULES; do
+    (cd $module && pwd && $@)
+done

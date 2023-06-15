@@ -13,15 +13,24 @@ services:
       - ./local/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-#  api:
-#    image: nomenclator/api
-#    restart: always
-#    secrets:
-#      - postgres_password
-#    depends_on:
-#      - db
-#    build:
-#      context: ./services/api
+      POSTGRES_DB: nomenclator
+  api:
+    image: us-east1-docker.pkg.dev/pboyd-io/nomenclator/api:${BUILD_TAG:-dev}
+    build:
+      context: ./services/api
+    restart: unless-stopped
+    depends_on:
+      - db
+    secrets:
+      - postgres_password
+      - tls_cert
+      - tls_cert_key
+    ports:
+      - 127.0.0.1:8080:8080
+      - "[::1]:8080:8080"
+    environment:
+      CERT_FILE: /run/secrets/tls_cert
+      KEY_FILE: /run/secrets/tls_cert_key
 
 secrets:
   tls_cert:
