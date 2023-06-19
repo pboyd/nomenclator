@@ -1,0 +1,10 @@
+#!/bin/sh
+
+## This script is used to open a psql session on the local database.
+
+if [ -z "$1" ]; then
+    set -- nomenclator
+fi
+
+export PGPASSWORD=$(cat secrets/postgres_password.txt)
+exec psql -h localhost -U postgres $@
