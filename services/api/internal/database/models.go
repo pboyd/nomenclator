@@ -6,26 +6,110 @@ package database
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 )
+
+type Prefix string
+
+const (
+	PrefixMr   Prefix = "Mr"
+	PrefixMrs  Prefix = "Mrs"
+	PrefixMs   Prefix = "Ms"
+	PrefixDr   Prefix = "Dr"
+	PrefixProf Prefix = "Prof"
+)
+
+func (e *Prefix) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Prefix(s)
+	case string:
+		*e = Prefix(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Prefix: %T", src)
+	}
+	return nil
+}
+
+type NullPrefix struct {
+	Prefix Prefix
+	Valid  bool // Valid is true if Prefix is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPrefix) Scan(value interface{}) error {
+	if value == nil {
+		ns.Prefix, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Prefix.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPrefix) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Prefix), nil
+}
+
+type Suffix string
+
+const (
+	SuffixJr  Suffix = "Jr"
+	SuffixSr  Suffix = "Sr"
+	SuffixII  Suffix = "II"
+	SuffixIII Suffix = "III"
+	SuffixIV  Suffix = "IV"
+	SuffixPhD Suffix = "PhD"
+	SuffixMD  Suffix = "MD"
+)
+
+func (e *Suffix) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Suffix(s)
+	case string:
+		*e = Suffix(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Suffix: %T", src)
+	}
+	return nil
+}
+
+type NullSuffix struct {
+	Suffix Suffix
+	Valid  bool // Valid is true if Suffix is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSuffix) Scan(value interface{}) error {
+	if value == nil {
+		ns.Suffix, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Suffix.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSuffix) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Suffix), nil
+}
 
 type Person struct {
 	ID         int64
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	Prefix     sql.NullString
+	Prefix     NullPrefix
 	FirstName  string
 	MiddleName sql.NullString
 	LastName   string
-	Suffix     sql.NullString
-}
-
-type Prefix struct {
-	ID   int16
-	Name string
-}
-
-type Suffix struct {
-	ID   int16
-	Name string
+	Suffix     NullSuffix
 }

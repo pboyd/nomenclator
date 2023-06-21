@@ -12,3 +12,9 @@ RETURNING id, created_at, updated_at;
 -- name: GetPerson :one
 -- Get one person by ID.
 SELECT * FROM people WHERE id = $1;
+
+-- name: ListPrefixes :many
+SELECT unnest(enum_range(null::prefix))::text prefix;
+
+-- name: ListSuffixes :many
+SELECT unnest(enum_range(null::suffix))::text suffix;
