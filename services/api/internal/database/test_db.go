@@ -28,15 +28,20 @@ import (
 //
 // If there are any errors, the test will be aborted.
 func TestDB(t *testing.T, fixtures ...string) *sql.DB {
-	passwordFile := os.Getenv("POSTGRES_PASSWORD_FILE")
-	if passwordFile == "" {
-		passwordFile = filepath.Join(gitRoot(), "secrets/postgres_password.txt")
-	}
+	password := os.Getenv("POSTGRES_PASSWORD")
+	if password == "" {
+		passwordFile := os.Getenv("POSTGRES_PASSWORD_FILE")
+		if passwordFile == "" {
+			passwordFile = filepath.Join(gitRoot(), "secrets/postgres_password.txt")
+		}
 
-	//nolint:gosec
-	password, err := os.ReadFile(passwordFile)
-	if err != nil {
-		t.Fatalf("unable to read postgres password file: %v", err)
+		//nolint:gosec
+		passwordBytes, err := os.ReadFile(passwordFile)
+		if err != nil {
+			t.Fatalf("unable to read postgres password file: %v", err)
+		}
+
+		password = string(passwordBytes)
 	}
 
 	host := os.Getenv("TEST_DATABASE_HOST")
