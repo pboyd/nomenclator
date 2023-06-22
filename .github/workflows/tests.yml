@@ -1,0 +1,34 @@
+---
+name: Test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: golang:1.19-bullseye
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nomenclator_test
+    steps:
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run linter
+        run: make deps lint
+
+      - name: Run tests
+        run: make test
+        env:
+          POSTGRES_PASSWORD: postgres
+          TEST_DATABASE_HOST: postgres
